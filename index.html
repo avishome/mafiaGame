@@ -200,7 +200,7 @@ td:first-child::before {
 
     <script>
 	
-
+const voteHistoryDiv = document.getElementById('vote-history');
 class VotingTable {
     constructor(players) {
         this.players = players;
@@ -208,7 +208,7 @@ class VotingTable {
         this.currentCycle = [];
         this.phase = 'day'; // 'day' or 'night'
         this.tableElement = document.createElement('table');
-        document.body.appendChild(this.tableElement);
+        voteHistoryDiv.appendChild(this.tableElement);
         this.renderTable(); // Initial render
     }
 
@@ -276,7 +276,7 @@ class VotingTable {
 }
 
 
-        const ws = new WebSocket('ws://localhost:3000');
+        const ws = new WebSocket('/');
         const joinButton = document.getElementById('join-button');
         const startButton = document.getElementById('start-button');
         const joinContainer = document.getElementById('join-container');
@@ -286,7 +286,6 @@ class VotingTable {
 
         const announcerSection = document.getElementById('announcer-section');
         const managerSection = document.getElementById('manager-section');
-        const voteHistoryDiv = document.getElementById('vote-history');
 
         const playerSection = document.getElementById('player-section');
         const playerListDiv = document.getElementById('player-list');
