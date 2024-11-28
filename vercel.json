@@ -5,6 +5,6 @@
   ],
   "routes": [
     { "src": "/ws/(.*)", "dest": "/server.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/$1" }
   ]
 }
