@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mafia Game Dashboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-in-out;
+        }
+        #join-container {
+            text-align: center;
+        }
+        #join-button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        #game {
+            display: none;
+            animation: fadeIn 2s ease-in-out;
+        }
+        #phase {
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #messages {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #player-list, #vote-history {
+            margin: 20px auto;
+            width: 80%;
+            max-width: 800px;
+        }
+        #player-list button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #ff6f61;
+            color: #fff;
+            transition: background 0.3s ease;
+        }
+        #player-list button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        #vote-history table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        #vote-history th, #vote-history td {
+            border: 1px solid #fff;
+            padding: 8px;
+            text-align: center;
+        }
+        #vote-history th {
+            background: #333;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .hidden {
+            display: none;
+        }
+		
+		
+		/* styles.css */
+
+/* Table Container */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: rgba(25, 25, 35, 0.95);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 
+        0 0 25px rgba(0, 0, 0, 0.2),
+        0 0 15px rgba(76, 175, 80, 0.2);
+    transition: all 0.3s ease;
+    animation: tableFloat 3s ease-in-out infinite;
+}
+
+/* Header Cells */
+th {
+    background: linear-gradient(45deg, #2c3e50, #3498db);
+    color: #fff;
+    padding: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid rgba(76, 175, 80, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Table Cells */
+td {
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+/* Row Styling */
+tr {
+    transition: all 0.3s ease;
+}
+
+tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+tr:hover {
+    background: rgba(76, 175, 80, 0.1);
+    transform: translateX(5px);
+    box-shadow: -5px 0 15px rgba(76, 175, 80, 0.2);
+}
+
+/* First Column Special Styling */
+td:first-child, th:first-child {
+    background: linear-gradient(45deg, #c0392b, #e74c3c);
+    color: white;
+    font-weight: bold;
+    position: relative;
+}
+
+/* Hover Effects */
+td:hover {
+    background: rgba(76, 175, 80, 0.2);
+    transform: scale(1.02);
+}
+
+/* Animations */
+@keyframes tableFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Add Icons (using pseudo-elements) */
+th::before {
+    content: '🎮';
+    margin-right: 8px;
+    font-size: 1.2em;
+    opacity: 0.8;
+}
+
+td:first-child::before {
+    content: '⚡';
+    margin-right: 8px;
+    font-size: 1.1em;
+}
+    </style>
+</head>
+<body>
+    <h1>Mafia Game Dashboard</h1>
+    <div id="join-container">
+        <button id="join-button">Join Game</button>
+    </div>
+    <div id="game">
+        <h2 id="phase"></h2>
+        <div id="messages"></div>
+		<!-- MANAGER Section -->
+        <div id="manager-section" class="hidden">
+            <button id="start-button">Start Game</button>
+        </div>
+        <!-- Announcer Section -->
+        <div id="announcer-section" class="hidden">
+            <h3>Vote History</h3>
+            <div id="vote-history"></div>
+        </div>
+
+        <!-- Player Section -->
+        <div id="player-section" class="hidden">
+            <div id="player-list"></div>
+        </div>
+    </div>
+
+    <script>
+	
+
+class VotingTable {
+    constructor(players) {
+        this.players = players;
+        this.table = [];
+        this.currentCycle = [];
+        this.phase = 'day'; // 'day' or 'night'
+        this.tableElement = document.createElement('table');
+        document.body.appendChild(this.tableElement);
+        this.renderTable(); // Initial render
+    }
+
+    updateTable(phase, player, votedFor) {
+        if (phase === 'night') {
+            this.phase = 'night';
+            this.currentCycle = [votedFor];
+        } else if (phase === 'day') {
+            this.phase = 'day';
+            if (this.currentCycle.length === 0) {
+                this.currentCycle = new Array(this.players.length + 1).fill('-');
+                this.currentCycle[0] = '?';
+            }
+            const playerIndex = this.players.indexOf(player) + 1;
+            this.currentCycle[playerIndex] = votedFor;
+        }
+        this.renderTable(); // Render after each update
+    }
+
+    finalizeCycle(eliminatedPlayer) {
+        if (this.phase === 'day') {
+            this.currentCycle[0] = eliminatedPlayer;
+        }
+        this.table.push(this.currentCycle);
+        this.currentCycle = [];
+        this.renderTable(); // Render after finalizing cycle
+    }
+	
+	updateUsers(players){
+		this.players = players;
+        this.renderTable(); // Initial render
+	}
+
+    renderTable() {
+        this.tableElement.innerHTML = ''; // Clear existing table content
+
+        const headerRow = document.createElement('tr');
+        ['Eliminated', ...this.players].forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        this.tableElement.appendChild(headerRow);
+
+        this.table.forEach(row => {
+            const tr = document.createElement('tr');
+            row.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            this.tableElement.appendChild(tr);
+        });
+
+        if (this.currentCycle.length > 0) {
+            const tr = document.createElement('tr');
+            this.currentCycle.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                tr.appendChild(td);
+            });
+            this.tableElement.appendChild(tr);
+        }
+    }
+}
+
+
+        const ws = new WebSocket('ws://localhost:3000');
+        const joinButton = document.getElementById('join-button');
+        const startButton = document.getElementById('start-button');
+        const joinContainer = document.getElementById('join-container');
+        const gameDiv = document.getElementById('game');
+        const phaseHeader = document.getElementById('phase');
+        const messagesDiv = document.getElementById('messages');
+
+        const announcerSection = document.getElementById('announcer-section');
+        const managerSection = document.getElementById('manager-section');
+        const voteHistoryDiv = document.getElementById('vote-history');
+
+        const playerSection = document.getElementById('player-section');
+        const playerListDiv = document.getElementById('player-list');
+		let votingTable;
+        let playerId;
+        let role;
+        let isAnnouncer = false;
+        let players = [];
+        let hasVoted = false;
+        let isEliminated = false;
+		let initPlayers = [];
+		votingTable = new VotingTable(initPlayers);
+		
+        joinButton.addEventListener('click', () => {
+            playerId = prompt('Enter your player ID:');
+            if (playerId) {
+                ws.send(JSON.stringify({ type: 'join', id: playerId }));
+                joinContainer.style.display = 'none';
+            }
+        });
+
+        startButton.addEventListener('click', () => {
+			ws.send(JSON.stringify({ type: 'start', id: playerId }));
+			startButton.style.display = 'none';
+        });
+
+        ws.onopen = () => {
+            console.log('Connected to the server.');
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            switch (data.type) {
+                case 'announcer':
+                    isAnnouncer = true;
+                    gameDiv.style.display = 'block';
+                    announcerSection.classList.remove('hidden');
+                    managerSection.classList.remove('hidden');
+                    addMessage('You are the announcer.');
+                    break;
+                case 'playerJoined':
+                    if (isAnnouncer) {
+                        addMessage(`Player joined: ${data.playerId}`);
+						initPlayers.push(data.playerId);
+						votingTable.updateUsers(initPlayers);
+                    }
+                    break;
+				case 'gameStarted':
+
+					break;
+				case 'role':
+                    role = data.role;
+                    gameDiv.style.display = 'block';
+                    playerSection.classList.remove('hidden');
+                    addMessage(`Your role is: ${role}`);
+                    break;
+                case 'start':
+                    addMessage(data.message);
+                    break;
+                case 'night':
+                    updatePhase('Night Phase');
+                    hasVoted = false;
+                    if (role === 'mafia' && !isEliminated) {
+                        // Mafia player: Show voting buttons
+                        updatePlayerList(data.players);
+                        addMessage('Choose a victim.');
+                    } else {
+                        // Civilian players: Waiting
+                        updatePlayerList(data.players);
+                        addMessage('Waiting for mafia to act...');
+                    }
+                    break;
+                case 'day':
+                    updatePhase('Day Phase');
+                    hasVoted = false;
+                    if (!isEliminated) {
+                        updatePlayerList(data.players);
+                        addMessage('Discuss and vote for a player to eliminate.');
+                    } else {
+                        updatePlayerList([]); // No voting options
+                        addMessage('You are eliminated.');
+                    }
+                    break;
+                case 'nightResult':
+                    addMessage(data.message);
+                    break;
+                case 'eliminated':
+                    isEliminated = true;
+                    addMessage('You have been eliminated.');
+                    disableAllButtons();
+                    break;
+                case 'playerVoted':
+                    if (isAnnouncer) {
+                        updateVoteHistory(data);
+                    }
+                    break;
+                case 'voteCounts':
+                    if (isAnnouncer) {
+                        updateVoteCounts(data);
+                    }
+                    break;
+                case 'playerEliminated':
+                    if (isAnnouncer) {
+                        addMessage(`Player ${data.playerId} was eliminated during ${data.phase} phase.`);
+						votingTable.finalizeCycle(data.playerId);
+                    }
+                    break;
+                case 'tie':
+                    if (isAnnouncer) {
+                        addMessage(`Tie during ${data.phase} phase: ${data.message}`);
+						votingTable.finalizeCycle('tie');
+                    }
+                    break;
+                case 'end':
+                    addMessage(data.message);
+                    disableAllButtons();
+                    break;
+                default:
+                    console.log('Unknown message type:', data.type);
+                    break;
+            }
+        };
+
+        function addMessage(message) {
+            messagesDiv.innerHTML = `<p>${message}</p>`;
+        }
+
+        function updatePhase(phase) {
+            phaseHeader.textContent = phase;
+        }
+
+        function updatePlayerList(availablePlayers) {
+            playerListDiv.innerHTML = '';
+            players = availablePlayers;
+            availablePlayers.forEach(player => {
+                const button = document.createElement('button');
+                button.textContent = player.id;
+                if (player.status === 'eliminated' || hasVoted || isEliminated) {
+                    button.disabled = true;
+                } else {
+                    button.disabled = false;
+                    button.addEventListener('click', () => {
+                        if (!hasVoted) {
+                            ws.send(JSON.stringify({ type: 'vote', id: playerId, vote: player.id }));
+                            hasVoted = true;
+                            disableAllButtons();
+                        }
+                    });
+                }
+                playerListDiv.appendChild(button);
+            });
+        }
+
+        function disableAllButtons() {
+            const buttons = document.querySelectorAll('#player-list button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function updateVoteHistory(data) {
+			votingTable.updateTable(data.phase, data.playerId, data.vote);
+        }
+
+        function updateVoteCounts(data) {
+            // Optionally, update vote counts for the announcer
+            // This can be customized based on your requirements
+        }
+
+        ws.onclose = () => {
+            console.log('Disconnected from the server.');
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    </script>
+</body>
+</html>
