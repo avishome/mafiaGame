@@ -288,6 +288,116 @@ td:first-child::before {
     font-size: 1.1em;
 }
     </style> 
+        <style>
+ 
+    
+            h1 {
+                text-align: center;
+                margin: 250px 0 20px;
+                color: #333;
+            }
+    
+            #join-container {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+    
+            #join-button, #start-button, #start-vote-button {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+                cursor: pointer;
+                border-radius: 5px;
+                transition: background-color 0.3s;
+            }
+    
+            #join-button:hover, #start-button:hover, #start-vote-button:hover {
+                background-color: #45a049;
+            }
+    
+            #game {
+                background-color: white;
+                border-radius: 10px;
+                padding: 20px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                max-width: 600px;
+                width: 100%;
+                margin: 0 auto;
+            }
+    
+            #messages {
+                background-color: #f9f9f9;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 15px;
+                min-height: 100px;
+            }
+    
+            .hidden {
+                display: none;
+            }
+    
+            #player-section, #announcer-section, #manager-section {
+                margin-top: 15px;
+            }
+    
+            /* Mobile-specific styles */
+            @media screen and (max-width: 768px) {
+                .city-scene {
+                    height: 250px;
+                }
+    
+                .buildings {
+                    height: 180px;
+                }
+    
+                .building {
+                    width: 30px;
+                }
+    
+                h1 {
+                    margin: 200px 0 15px;
+                    font-size: 1.5rem;
+                    padding: 0 15px;
+                }
+    
+                #join-button, #start-button, #start-vote-button {
+                    padding: 8px 15px;
+                    font-size: 14px;
+                }
+    
+                #game {
+                    padding: 15px;
+                    margin: 0 15px;
+                }
+            }
+    
+            @media screen and (max-width: 480px) {
+                .city-scene {
+                    height: 200px;
+                }
+    
+                .buildings {
+                    height: 150px;
+                }
+    
+                .building {
+                    width: 20px;
+                }
+    
+                h1 {
+                    margin: 180px 0 10px;
+                    font-size: 1.3rem;
+                }
+            }
+        </style>
 </head>
 <body>
     <div style="
