@@ -1,9 +1,9 @@
 const WebSocket = require('ws');
 const assert = require('assert');
 
-const serverUrl = 'ws://localhost:3000'; // Replace with your server URL
+const serverUrl = 'https://mafia-731890553755.us-central1.run.app/'; // Replace with your server URL
 const players = [];
-const playerCount = 10;
+const playerCount = 5;
 let startMessagesReceived = 0;
 let nightMessagesReceived = 0;
 let victimChosen = false;

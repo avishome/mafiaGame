@@ -11,11 +11,9 @@ app.use(express.static(__dirname + '/'));
 
 let currentPhase = 'night'; // 'day' or 'night'
 let players = [];
-let roles = [];
 let announcer = null; // To store the announcer's websocket
 
 const MAFIA_COUNT = 1; // You can adjust the number of mafia players here
-
 
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
@@ -30,19 +28,25 @@ wss.on('connection', (ws) => {
                     // Add new player to the players array
                     players.push({ id: data.id, ws, status: 'alive', vote: null });
                     // Notify the announcer about the new player
-                    notifyAnnouncer({ type: 'playerJoined', playerId: data.id });
-                    /*if (players.length === 10) { // Start game with 10 players
-                        assignRoles();
-                        startGame();
-                    }*/
+                    notifyAnnouncer({ type: 'playerJoined', playerId: data.id, players: players });
                 }
                 break;
             case 'vote':
                 handleVote(data);
                 break;
-			case 'start':
+            case 'start':
                 assignRoles();
                 startGame();
+                break;
+            case 'startVote':
+                players.forEach(player => {
+                    player.ws.send(JSON.stringify({ type: 'votingStarted', message: 'Time to vote', players: players.filter(p => p.id !== player.id && p.status === 'alive').map(p => ({ id: p.id })) }));
+                });
+                break;
+            case 'removePlayer':
+            case 'eliminatePlayer':
+                players = players.filter(p => p.id !== data.playerId);
+                if(currentPhase === 'day') countVotes()
                 break;
             // Add more cases as needed
         }
@@ -301,5 +305,5 @@ function endGame(message) {
 }
 
 server.listen(port, () => {
-    console.log('Server is listening on port 3000');
+    console.log(`Server is listening on port ${port}`);
 });
